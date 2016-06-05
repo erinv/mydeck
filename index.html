@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Accessing Data from a Regional Travel Demand Model</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Accessing Data from a Regional Travel Demand Model">
+  <meta name="author" content="EV">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Accessing Data from a Regional Travel Demand Model</h1>
+    <h2>Prepared for Developing Data Products, June 2016</h2>
+    <p>EV<br/></p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>Background and Statement of Problem</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Many public planning agencies have developed models of travel demand in their regions. The latest generation of models are known as &quot;activity-based&quot; models because they synthesize a regional population and associated activities (working, shopping, socializing, etc.) that lead to demand for travel.  Outputs of the models include a list of all the trips made by the synthesized population between geographic entities called Travel Analysis Zones (there are 1454 of them in the San Francisco Bay Area) for each mode of transportation (walk, bike, drive, transit, etc.).</p>
+
+<p>While the travel demand model outputs are potentially of interest to many planners, engineers, and members of the general public, the output data sets are quite large and difficult to wrangle without a tool such as R.  For example, the combined individual and joint trips data set produced by the regional travel demand model in the San Francisco Bay Area contains this many rows:</p>
+
+<pre><code class="r">load(&quot;MTCTrips.RData&quot;)
+nrow(Trips)
+</code></pre>
+
+<pre><code>## [1] 12201135
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Solution:  MTCTrips Shiny App</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The aim of this Shiny app is to make the travel model output trips more accessible by generating summary tables and plots for variables in the trips data set which include:</p>
+
+<pre><code>##  [1] &quot;hh_id&quot;             &quot;person_id&quot;         &quot;person_num&quot;       
+##  [4] &quot;tour_id&quot;           &quot;stop_id&quot;           &quot;inbound&quot;          
+##  [7] &quot;tour_purpose&quot;      &quot;orig_purpose&quot;      &quot;dest_purpose&quot;     
+## [10] &quot;orig_taz&quot;          &quot;orig_walk_segment&quot; &quot;dest_taz&quot;         
+## [13] &quot;dest_walk_segment&quot; &quot;parking_taz&quot;       &quot;depart_hour&quot;      
+## [16] &quot;trip_mode&quot;         &quot;tour_mode&quot;         &quot;tour_category&quot;    
+## [19] &quot;num_participants&quot;  &quot;O_county&quot;          &quot;D_county&quot;
+</code></pre>
+
+<p>(Note:  taz refers to Travel Analysis Zone)</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Current Status</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The current version of the app uses a simplified version of the modeled trips which have been aggregated at the geographic level of the county using the following code:</p>
+
+<pre><code class="r">ctrips_table &lt;- aggregate(Trips, by = list(Trips$O_county, Trips$D_county, Trips$trip_mode), 
+    FUN = sum)
+</code></pre>
+
+<p>Resulting in:</p>
+
+<pre><code>## &#39;data.frame&#39;:    1296 obs. of  7 variables:
+##  $ trip_mode : Factor w/ 16 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;5&quot;,..: 1 2 3 4 5 6 7 8 9 10 ...
+##  $ O_county  : Factor w/ 9 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ D_county  : Factor w/ 9 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ Trips     : int  371906 0 155772 114148 349780 38457 130865 90286 3 12777 ...
+##  $ Mode      : Factor w/ 18 levels &quot;1-Drive alone-free&quot;,..: 1 11 12 14 16 17 18 2 3 4 ...
+##  $ fromcounty: Factor w/ 9 levels &quot;Alameda&quot;,&quot;Contra Costa&quot;,..: 5 5 5 5 5 5 5 5 5 5 ...
+##  $ tocounty  : Factor w/ 9 levels &quot;Alameda&quot;,&quot;Contra Costa&quot;,..: 5 5 5 5 5 5 5 5 5 5 ...
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Future Development Plans</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Given the short development time, the app is currently a vastly simplified version of what was originally envisioned.  In its present state, the app takes user inputs for two counties (&quot;from&quot; and &quot;two&quot;) and produces a simple summary and plot of trips by mode of travel.  The app will require further development to become truly useful.  Desirable improvements include:</p>
+
+<ol>
+<li> Use of a reactive data function to subset the trips data </li>
+<li>Use of detailed trips data set as input rather than simplified version (this will require strategies to improve performance or a means to generate messages to the users while data is being subsetted)</li>
+<li>More flexible user selection of variables of interest</li>
+<li>Features to download/save output data summaries or plots</li>
+<li>Some kind of map interface would be cool, too</li>
+</ol>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='Background and Statement of Problem'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='Solution:  MTCTrips Shiny App'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Current Status'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='Future Development Plans'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='NA'>
+         5
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>
